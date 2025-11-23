@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "复制为文件",
   "main": "file-copy.js",
+  "type": "module",
+  "bin": {
+    "copy-tool": "./menu-file-copy.js"
+  },
   "scripts": {
     "test": "file-copy"
   },
