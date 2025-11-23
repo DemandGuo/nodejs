@@ -1,0 +1,59 @@
+// 高阶函数
+function not(f) {
+    return function (...args) {
+        let result = f.apply(this, args)
+        return !result
+    }
+}
+
+const event = x => x % 2 === 0;
+const odd = not(event);
+const test1 = [1, 5, 3, 5, 5].every(odd)
+// console.log(test1)
+
+const map = function (a, ...args) {
+    return a.map(...args)
+}
+function mapper(f) {
+    return a => map(a, f)
+}
+const increment = x => x + 1;
+const incrementAll = mapper(increment)([1, 2, 3])
+console.log(incrementAll);
+function compose(f, g) {
+    return function (...args) {
+        return f(g(...args))
+    }
+}
+const sum = (x, y) => x + y;
+const square = x => x * x;
+
+// console.log(compose(square, sum)(2, 3))
+function partiallLeft(f, ...outerArgs) {
+    return function (...innerArgs) {
+        let args = [...innerArgs, ...outerArgs]
+        return f.apply(this, args)
+    }
+}
+function partiallRight(f, ...outerArgs) {
+    return function (...innerArgs) {
+        let args = [...outerArgs, ...innerArgs]
+        return f.apply(this, args)
+    }
+}
+console.log([1, 2, 3, 4, 5].slice(1), '70')
+function partial(...outerArgs) {
+    return function (...innerArgs) {
+        let args = [...outerArgs]
+        let innerIndex = 0;
+        for (let i = 0; i < args.length; i++) {
+            if (args[i] === undefined) args[i] == innerArgs[innerIndex++];
+        }
+        args.push(...innerArgs.slice(innerIndex))
+        return f.apply(null, args)
+    }
+}
+
+const not2 = partiallLeft(compose, x => !x);
+const odd2 = not2(event);
+console.log(odd2([1,2]))

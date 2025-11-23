@@ -1,0 +1,14 @@
+{
+  "name": "copy-file",
+  "version": "1.0.0",
+  "description": "复制为文件",
+  "main": "file-copy.js",
+  "scripts": {
+    "test": "file-copy"
+  },
+  "keywords": [
+    "copy"
+  ],
+  "author": "gyz",
+  "license": "ISC"
+}

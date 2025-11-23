@@ -1,0 +1,22 @@
+{
+  "name": "my-node-tool",
+  "version": "1.0.0",
+  "description": "",
+  "main": "tool.js",
+  "type": "module",
+  "scripts": {},
+  "bin": {
+    "rename-tool": "./tool.js"
+  },
+  "keywords": [
+    "cli",
+    "rename",
+    "batch",
+    "file",
+    "tool"
+  ],
+  "dependencies": {
+    "commander": "^12.0.0",
+    "my-node-tool": "^1.0.0"
+  }
+}
