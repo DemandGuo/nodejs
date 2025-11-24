@@ -1,0 +1,112 @@
+# big-file.txt - 大型测试文本文件
+# 用于测试 CLI 工具搜索关键词功能
+
+=====================================
+Node.js File System and Async Operations
+=====================================
+
+Node.js provides a powerful module called 'fs' (File System) for interacting with the file system. It supports both synchronous and asynchronous operations. Asynchronous methods are non-blocking and use callbacks or Promises, making them ideal for high-performance applications.
+
+The fs.promises API allows developers to use async/await syntax, which improves code readability. For example:
+
+  const data = await fs.promises.readFile('example.txt', 'utf-8');
+
+This line reads the entire content of 'example.txt' as a string. If the file does not exist, an error will be thrown unless handled properly.
+
+When working with large files, it's important to consider memory usage. Reading a huge file into memory all at once can cause performance issues. In such cases, streaming is recommended.
+
+=====================================
+Server Log Simulation (Repeated Entries)
+=====================================
+
+[INFO] 2024-01-15 10:23:45 User login successful: user_id=12345
+[ERROR] 2024-01-15 10:24:12 Database connection failed: timeout after 5000ms
+[INFO] 2024-01-15 10:25:33 Request processed in 120ms: GET /api/data
+[WARN] 2024-01-15 10:26:07 Rate limit approaching for IP: 192.168.1.100
+[INFO] 2024-01-15 10:27:19 User logout: session_id=abcde12345
+[ERROR] 2024-01-15 10:28:44 Invalid token provided: user_id=67890
+[INFO] 2024-01-15 10:29:55 Cache hit for key: user_profile_12345
+[INFO] 2024-01-15 10:30:11 User login successful: user_id=54321
+[ERROR] 2024-01-15 10:31:22 Failed to write to disk: ENOSPC (No space left on device)
+[INFO] 2024-01-15 10:32:40 Request processed in 95ms: POST /api/upload
+
+[INFO] 2024-01-15 10:23:45 User login successful: user_id=12345
+[ERROR] 2024-01-15 10:24:12 Database connection failed: timeout after 5000ms
+[INFO] 2024-01-15 10:25:33 Request processed in 120ms: GET /api/data
+[WARN] 2024-01-15 10:26:07 Rate limit approaching for IP: 192.168.1.100
+[INFO] 2024-01-15 10:27:19 User logout: session_id=abcde12345
+[ERROR] 2024-01-15 10:28:44 Invalid token provided: user_id=67890
+[INFO] 2024-01-15 10:29:55 Cache hit for key: user_profile_12345
+[INFO] 2024-01-15 10:30:11 User login successful: user_id=54321
+[ERROR] 2024-01-15 10:31:22 Failed to write to disk: ENOSPC (No space left on device)
+[INFO] 2024-01-15 10:32:40 Request processed in 95ms: POST /api/upload
+
+[INFO] 2024-01-15 10:23:45 User login successful: user_id=12345
+[ERROR] 2024-01-15 10:24:12 Database connection failed: timeout after 5000ms
+[INFO] 2024-01-15 10:25:33 Request processed in 120ms: GET /api/data
+[WARN] 2024-01-15 10:26:07 Rate limit approaching for IP: 192.168.1.100
+[INFO] 2024-01-15 10:27:19 User logout: session_id=abcde12345
+[ERROR] 2024-01-15 10:28:44 Invalid token provided: user_id=67890
+[INFO] 2024-01-15 10:29:55 Cache hit for key: user_profile_12345
+[INFO] 2024-01-15 10:30:11 User login successful: user_id=54321
+[ERROR] 2024-01-15 10:31:22 Failed to write to disk: ENOSPC (No space left on device)
+[INFO] 2024-01-15 10:32:40 Request processed in 95ms: POST /api/upload
+
+=====================================
+Random English Sentences (for volume testing)
+=====================================
+
+The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet.
+Programming is not about what you know; it's about what you can figure out along the way.
+Consistency beats intensity when building long-term habits and skills.
+Debugging is like being a detective in a crime movie where you are also the murderer.
+Artificial intelligence will transform industries, but human empathy remains irreplaceable.
+Cloud computing enables scalable infrastructure without upfront hardware investment.
+Version control systems like Git help teams collaborate without stepping on each other's code.
+Security is not a feature; it's a continuous process that must be integrated from day one.
+Performance optimization often reveals hidden assumptions in your codebase.
+The best code is not only correct but also readable, maintainable, and elegant.
+
+The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet.
+Programming is not about what you know; it's about what you can figure out along the way.
+Consistency beats intensity when building long-term habits and skills.
+Debugging is like being a detective in a crime movie where you are also the murderer.
+Artificial intelligence will transform industries, but human empathy remains irreplaceable.
+Cloud computing enables scalable infrastructure without upfront hardware investment.
+Version control systems like Git help teams collaborate without stepping on each other's code.
+Security is not a feature; it's a continuous process that must be integrated from day one.
+Performance optimization often reveals hidden assumptions in your codebase.
+The best code is not only correct but also readable, maintainable, and elegant.
+
+=====================================
+Chinese Paragraphs (中文测试内容)
+=====================================
+
+在软件开发过程中，调试是一项至关重要的技能。许多开发者花费大量时间定位问题根源，而有效的调试策略能显著提升效率。常见的调试方法包括使用断点、打印日志、单元测试和代码审查。
+
+Node.js 是一个基于 Chrome V8 引擎的 JavaScript 运行时环境，广泛用于构建高性能的网络应用。其事件驱动、非阻塞 I/O 模型使其特别适合数据密集型实时应用。
+
+日志分析是运维工作的核心环节之一。通过分析服务器日志，我们可以监控用户行为、检测异常、优化性能。关键词如 "error"、"timeout"、"login" 经常出现在日志排查中。
+
+在日常开发中，我们经常需要搜索特定关键词。例如，查找所有包含 "123" 的记录，可能用于追踪测试数据或验证系统行为。本文件特意加入了多处 "123" 以便测试搜索功能。
+
+=====================================
+Numbers, Special Characters, and Repeated Keywords
+=====================================
+
+User ID: 123, Order Number: 456789, Transaction ID: TXN-987654321
+Phone: +1-800-555-0123, ZIP Code: 12345, PIN: ****123
+Error Code: E123, Status: 200 OK, Retry Count: 3, Delay: 123ms
+Password hint: contains digits like 1, 2, 3 in sequence
+
+Search keywords test: 123 appears multiple times here -> 123 123 123
+Another line with number: The value is 123 and should be found.
+Special chars: @#$%^&*()_+{}|:"<>?[]\\;',./`~ 123 done.
+
+=====================================
+End of File
+=====================================
+
+This file is intentionally large and repetitive to simulate real-world log or document scenarios.
+It includes keywords such as: Node.js, fs, readFile, 123, error, login, user_id, etc.
+You can use this file to test your CLI tool's ability to search across large texts efficiently.
