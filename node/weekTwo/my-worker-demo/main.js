@@ -1,6 +1,13 @@
 const { Worker } = require('worker_threads');
 const path = require('path')
-
+try {
+    const cluster = require('cluster')
+    const numCpus = require('os').cpus.length
+    console.log(cluster.isPrimary)
+    console.log(numCpus, '555----')
+} catch (err) {
+    console.log(err.messaage)
+}
 // 要计算的数字范围
 const totalNumbers = 1e9; // 10亿
 const threadCount = 4;    // 开 4 个线程
