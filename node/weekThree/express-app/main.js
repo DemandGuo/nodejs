@@ -1,0 +1,38 @@
+const express = require('express');
+const path = require('path');
+
+const app = express();
+const PORT = 3000;
+const router = require('./routes/products.route.js');
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+// 数据库初始化和关闭 (保持不变)
+
+console.log('Database table "products" initialized.');
+process.on('exit', () => db.close());
+// 注意：在生产环境中，错误处理应更健壮，并确保在致命错误时关闭 DB
+
+// 
+
+// --- CRUD 路由定义 ---
+app.use('/api/products', router);
+
+const errorHandler = (err, req, res, next) => {
+    console.error(err.stack);
+    const status = err.status || 500;
+    res.status(status).json({ error: err.message || 'Internal Server Error' });
+}
+app.use(errorHandler);
+// --- 启动服务器 ---
+app.listen(PORT, () => {
+    console.log(`\n==============================================`);
+    console.log(`🚀 CRUD API Server is running!`);
+    console.log(`Local: http://localhost:${PORT}`);
+    console.log(`==============================================`);
+    console.log(`Test Endpoints:`);
+    console.log(`  GET All:    /api/products`);
+    console.log(`  GET One:    /api/products/1`);
+    console.log(`  POST/PUT/DELETE: /api/products/:id`);
+    console.log(`==============================================\n`);
+});

@@ -8,7 +8,7 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
-
+app.use(express.static(path.join(__dirname, 'public')));
 // 数据库初始化和关闭 (保持不变)
 const createTableStmt = `
     CREATE TABLE IF NOT EXISTS products (
