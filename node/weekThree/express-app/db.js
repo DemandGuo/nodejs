@@ -16,5 +16,13 @@ const createTableStmt = `
 db.exec(createTableStmt);
 console.log('Database table "products" initialized.');
 
+const createUsersTableStmt = `
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL
+    )
+`;
+db.exec(createUsersTableStmt);
 // 3. 导出连接对象供服务层使用
 module.exports = db;

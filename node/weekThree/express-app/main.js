@@ -1,10 +1,14 @@
 const express = require('express');
 const path = require('path');
-
+const db = require('./db');
 const app = express();
 const PORT = 3000;
 const router = require('./routes/products.route.js');
+const routerAuth = require('./routes/auth.route.js');
 
+require('dotenv').config({
+    path: path.resolve(__dirname, './.env')
+});
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 // 数据库初始化和关闭 (保持不变)
@@ -12,11 +16,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 console.log('Database table "products" initialized.');
 process.on('exit', () => db.close());
 // 注意：在生产环境中，错误处理应更健壮，并确保在致命错误时关闭 DB
-
+const authMiddleware = require('./middlewares/auth.middleware');
+// app.use(authMiddleware);
 // 
 
 // --- CRUD 路由定义 ---
-app.use('/api/products', router);
+app.use('/api/auth', routerAuth);
+app.use('/api/products', authMiddleware, router);
+
 
 const errorHandler = (err, req, res, next) => {
     console.error(err.stack);
