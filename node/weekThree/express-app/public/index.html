@@ -1,11 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>I'm thinking of a number...</title>
+    <style>
+        body {
+            height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+        }
+
+        #heading {
+            font: bold 36px sans-serif;
+            margin: 0;
+        }
+
+        #container {
+            border: solid black 1px;
+            height: 1em;
+            width: 80%;
+        }
+
+        #range {
+            width: 100%;
+            height: 1em;
+            margin-left: 0;
+            background: green;
+        }
+
+        #input {
+            display: block;
+            font-size: 24px;
+            width: 60%;
+            padding: 5px;
+        }
+
+        #paly-again {
+            font-size: 24px;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+    </style>
 </head>
+
 <body>
-    <div>测试</div>
+    <h1 id="heading">i'm thinking of a number...</h1>
+    <div id="container">
+        <div id="range"></div>
+    </div>
+    <input type="number" id="input" placeholder="Enter your guess here" />
+    <button id="paly-again" hidden>Play Again</button>
+    <script>
+        class GameState {
+            static newGame() {
+                let s = new GameState();
+                s.select = s.randomInt(0, 100);
+                s.low = 0;
+                s.high = 100;
+                s.numGuesses = 0;
+                s.guess = null;
+                return s;
+            }
+            static fromStateObject(stateObject) {
+                let s = new GameState();
+                for (let key of Object.keys(stateObject)) {
+                    s[key] = stateObject[key];
+                }
+                return s;
+            }
+            toURL() {
+                let url = new URL(window.location);
+                url.searchParams.set('l', this.low);
+                url.searchParams.set('h', this.high);
+                url.searchParams.set('n', this.numGuesses);
+                url.searchParams.set('g', this.guess);
+                return url.href;
+            }
+            static fromURL() {
+                let url = new URL(window.location);
+                let s = new GameState();
+                let params = url.searchParams;
+                if (params.has('l') && params.has('h') && params.has('n')) {
+                    s.low = parseInt(params.get('l'));
+                    s.high = parseInt(params.get('h'));
+                    s.numGuesses = parseInt(params.get('n'));
+                    s.guess = params.has('g') ? parseInt(params.get('g')) : null;
+                    s.select = s.randomInt(0, 100); // Note: select is not stored in URL for simplicity
+                    return s;
+                } else {
+                    return null;
+                }
+            }
+            randomInt(min, max) {
+                return Math.floor(Math.random() * (max - min)) + min;
+            }
+            render() {
+                const heading = document.getElementById('heading');
+                const range = document.getElementById('range');
+                const input = document.getElementById('input');
+                const playAgainButton = document.getElementById('paly-again');
+                heading.textContent = document.title = `I'm thinking of a number between ${this.low} and ${this.high} (guesses: ${this.numGuesses})`;
+
+                range.style.marginLeft = (this.low) + '%';
+                range.style.width = (this.high - this.low) + '%';
+
+                input.value = '';
+                input.focus();
+
+                if (this.guess === null) {
+                    input.placeholder = 'Enter your guess here';
+                } else if (this.guess < this.select) {
+                    input.placeholder = `${this.guess} is too low!`;
+                } else if (this.guess > this.select) {
+                    input.placeholder = `${this.guess} is too high!`;
+                } else {
+                    input.placeholder = document.title = `Correct! The number was ${this.select}.`;
+                    heading.textContent = 'you win in ' + this.numGuesses + ' guesses!';
+                    playAgainButton.hidden = false;
+                }
+            }
+            updateForGuess(guess) {
+                if (guess < this.low || guess >= this.high) {
+                    alert(`Please enter a number between ${this.low} and ${this.high - 1}.`);
+                    return false;
+                }
+                if (guess < this.select) this.low = guess;
+                else if (guess > this.select) this.high = guess;
+                this.guess = guess;
+                this.numGuesses++;
+                return true;
+            }
+        }
+        let gameState = GameState.fromURL() || GameState.newGame();
+    </script>
 </body>
+
 </html>
