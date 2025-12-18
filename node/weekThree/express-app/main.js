@@ -1,14 +1,30 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const path = require('path');
 const db = require('./db');
 const app = express();
 const PORT = 3000;
+
 // const router = require('./routes/products.route.js');
 const routerAuth = require('./routes/auth.route.js');
 const routesProductsMongoose = require('./routes/products.mongoose.route.js');
 
 const connectDB = require('./db.mongoose');
 connectDB();
+
+// --- 启动服务器 ---
+const server = http.createServer(app); // 用 app 创建 HTTP 服务器
+const io = new Server(server, {
+    cors: { origin: "*" } // 允许跨域连接
+});
+app.set('io', io);
+io.on('connection', (socket) => {
+    console.log('A user connected via WebSocket:', socket.id);
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
+});
 
 // 中间件配置
 require('dotenv').config({
@@ -38,8 +54,11 @@ const errorHandler = (err, req, res, next) => {
     res.status(status).json({ error: err.message || 'Internal Server Error' });
 }
 app.use(errorHandler);
-// --- 启动服务器 ---
-app.listen(PORT, () => {
+
+// server.listen(PORT);
+// app.listen(PORT);
+
+server.listen(PORT, () => {
     console.log(`\n==============================================`);
     console.log(`🚀 CRUD API Server is running!`);
     console.log(`Local: http://localhost:${PORT}`);

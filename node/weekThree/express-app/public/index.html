@@ -53,6 +53,14 @@
     </div>
     <input type="number" id="input" placeholder="Enter your guess here" />
     <button id="paly-again" hidden>Play Again</button>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        socket.on('product_added', (product) => {
+            alert('实时消息：新产品 ' + product.name + ' 已上架！');
+            console.log('收到新数据:', product);
+        });
+    </script>
     <script>
         class GameState {
             static newGame() {

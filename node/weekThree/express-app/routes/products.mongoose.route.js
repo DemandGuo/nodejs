@@ -28,18 +28,18 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
     try {
         const product = await productsService.getById(req.params.id);
-        
+
         // Mongoose 返回 null 时，抛出 404 错误
         if (!product) {
             const err = new Error('Product not found');
             err.status = 404;
-            return next(err); 
+            return next(err);
         }
 
         res.json(product);
     } catch (err) {
         // Mongoose 可能会因为 ID 格式错误抛出 CastError，中央处理器应处理
-        next(err); 
+        next(err);
     }
 });
 
@@ -47,11 +47,13 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
     try {
         const newProduct = await productsService.create(req.body);
+        const io = req.app.get('io');
+        io.emit('product_added', newProduct); // 广播新产品添加事件
         res.status(201).json(newProduct);
     } catch (err) {
         // Mongoose 验证失败 (Validation Error) 会在这里被捕获
         err.status = 400; // 假设所有创建失败都是客户端输入错误
-        next(err); 
+        next(err);
     }
 });
 
@@ -59,13 +61,13 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
     try {
         const updatedProduct = await productsService.update(req.params.id, req.body);
-        
+
         if (!updatedProduct) {
-             const err = new Error('Product not found');
+            const err = new Error('Product not found');
             err.status = 404;
-            return next(err); 
+            return next(err);
         }
-        
+
         res.json(updatedProduct); // 返回更新后的资源
     } catch (err) {
         err.status = 400; // 假设更新失败可能是验证错误或 ID 格式错误
@@ -78,7 +80,7 @@ router.put('/:id', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
     try {
         const deletedProduct = await productsService.remove(req.params.id);
-        
+
         // Mongoose deleteOne/findByIdAndDelete 返回 null 或操作结果
         if (!deletedProduct) {
             const err = new Error('Product not found');
@@ -87,7 +89,7 @@ router.delete('/:id', async (req, res, next) => {
         }
 
         // 204 No Content 是删除成功的标准响应
-        res.status(204).end(); 
+        res.status(204).end();
     } catch (err) {
         next(err); // 将错误传递给中央处理器
     }
