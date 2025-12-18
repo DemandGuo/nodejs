@@ -67,5 +67,35 @@ module.exports = {
         }
 
         return deletedProduct;
+    },
+    async updateStock(id, newStock, io) {
+        const updatedProduct = await Product.findOneAndUpdate(
+            { _id: id, stock: { $gte: -changeAmount } }, // 确保减少后不会小于 0
+            { $inc: { stock: changeAmount } },           // 增量修改
+            { new: true }
+        );
+
+        if (!updatedProduct) {
+            throw new Error('库存不足或产品不存在');
+        }
+        if (updatedProduct) {
+            // 2. 记录日志
+            await Log.create({
+                action: 'STOCK_UPDATE',
+                targetId: id,
+                message: `产品 [${updatedProduct.name}] 库存变更为: ${newStock}`
+            });
+
+            // 3. 核心：通过 WebSocket 向全网广播“库存变化”事件
+            // 我们只发送必要的数据（ID 和新库存），减少带宽开销
+            if (io) {
+                io.emit('stock_changed', {
+                    id: updatedProduct._id,
+                    stock: updatedProduct.stock,
+                    name: updatedProduct.name
+                });
+            }
+        }
+        return updatedProduct;
     }
 };

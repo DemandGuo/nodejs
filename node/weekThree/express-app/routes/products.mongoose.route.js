@@ -3,6 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const productsService = require('../services/products.service.mongoose');
+const { validate, schemas } = require('../middlewares/validator.middleware');
 
 // --- 辅助函数：处理未找到资源 ---
 function handleNotFound(product, res) {
@@ -44,11 +45,10 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // 创建新产品
-router.post('/', async (req, res, next) => {
+router.post('/', validate(schemas.productCreate), async (req, res, next) => {
     try {
-        const newProduct = await productsService.create(req.body);
         const io = req.app.get('io');
-        io.emit('product_added', newProduct); // 广播新产品添加事件
+        const newProduct = await productsService.create(req.body, io);
         res.status(201).json(newProduct);
     } catch (err) {
         // Mongoose 验证失败 (Validation Error) 会在这里被捕获
@@ -60,7 +60,8 @@ router.post('/', async (req, res, next) => {
 // 更新产品
 router.put('/:id', async (req, res, next) => {
     try {
-        const updatedProduct = await productsService.update(req.params.id, req.body);
+        const io = req.app.get('io');
+        const updatedProduct = await productsService.update(req.params.id, req.body, io);
 
         if (!updatedProduct) {
             const err = new Error('Product not found');
@@ -79,7 +80,8 @@ router.put('/:id', async (req, res, next) => {
 // 删除产品
 router.delete('/:id', async (req, res, next) => {
     try {
-        const deletedProduct = await productsService.remove(req.params.id);
+        const io = req.app.get('io');
+        const deletedProduct = await productsService.remove(req.params.id, io);
 
         // Mongoose deleteOne/findByIdAndDelete 返回 null 或操作结果
         if (!deletedProduct) {
@@ -92,6 +94,22 @@ router.delete('/:id', async (req, res, next) => {
         res.status(204).end();
     } catch (err) {
         next(err); // 将错误传递给中央处理器
+    }
+});
+
+// PATCH /api/products/:id/stock
+router.patch('/:id/stock', validate(schemas.stockUpdate), async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { stock } = req.body;
+        const io = req.app.get('io');
+        const updated = await productsService.updateStock(id, stock, io);
+        if (!updated) {
+            return res.status(404).json({ error: '未找到该产品' });
+        }
+        res.json(updated);
+    } catch (err) {
+        next(err);
     }
 });
 

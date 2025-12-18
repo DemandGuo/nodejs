@@ -1,71 +1,107 @@
+/**
+ * 核心依赖引入
+ */
+require('dotenv').config(); // 1. 必须放在最顶部，确保后续模块能读取到环境变量
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
-const db = require('./db');
-const app = express();
-const PORT = 3000;
 
-// const router = require('./routes/products.route.js');
+// 生产环境增强插件
+const helmet = require('helmet');
+const compression = require('compression');
+const morgan = require('morgan');
+
+// 数据库连接
+const connectDB = require('./db.mongoose');
+
+// 路由引入
 const routerAuth = require('./routes/auth.route.js');
 const routesProductsMongoose = require('./routes/products.mongoose.route.js');
 
-const connectDB = require('./db.mongoose');
-connectDB();
+/**
+ * 初始化应用
+ */
+const app = express();
+const PORT = process.env.PORT || 3000;
+const server = http.createServer(app); // 创建 HTTP Server 以支持 WebSocket
 
-// --- 启动服务器 ---
-const server = http.createServer(app); // 用 app 创建 HTTP 服务器
+/**
+ * 1. 安全与性能中间件 (Global Middlewares)
+ */
+app.use(helmet()); // 安全防护
+app.use(compression()); // Gzip 压缩
+
+// 日志记录：开发环境简洁，生产环境详细
+if (process.env.NODE_ENV === 'production') {
+    app.use(morgan('combined'));
+} else {
+    app.use(morgan('dev'));
+}
+
+/**
+ * 2. 基础功能中间件
+ */
+app.use(express.json()); // 解析 JSON 请求体
+app.use(express.static(path.join(__dirname, 'public'))); // 静态文件服务
+
+/**
+ * 3. 数据库连接初始化
+ */
+connectDB();
+console.log('✅ MongoDB connection initialized.');
+
+/**
+ * 4. WebSocket (Socket.io) 配置
+ */
 const io = new Server(server, {
-    cors: { origin: "*" } // 允许跨域连接
+    cors: { origin: "*" } // 允许跨域
 });
+
+// 将 io 实例挂载到 app 对象，方便在路由中使用 req.app.get('io')
 app.set('io', io);
+
 io.on('connection', (socket) => {
-    console.log('A user connected via WebSocket:', socket.id);
+    console.log(`👤 New User Connected: ${socket.id}`);
+    
     socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
+        console.log(`👤 User Disconnected: ${socket.id}`);
     });
 });
 
-// 中间件配置
-require('dotenv').config({
-    path: path.resolve(__dirname, './.env')
-});
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-// 数据库初始化和关闭 (保持不变)
-
-console.log('Database table "products" initialized.');
-// process.on('exit', () => db.close());
-// 注意：在生产环境中，错误处理应更健壮，并确保在致命错误时关闭 DB
-const authMiddleware = require('./middlewares/auth.middleware');
-// app.use(authMiddleware);
-// 
-
-// --- CRUD 路由定义 ---
+/**
+ * 5. 业务路由定义
+ */
 app.use('/api/auth', routerAuth);
-// app.use('/api/products', authMiddleware, router);
-// 选择使用 Mongoose 版本的路由
 app.use('/api/products', routesProductsMongoose);
 
-
+/**
+ * 6. 全局错误处理中间件 (必须放在路由之后)
+ */
 const errorHandler = (err, req, res, next) => {
-    console.error(err.stack);
+    console.error(`❌ Error: ${err.stack}`);
     const status = err.status || 500;
-    res.status(status).json({ error: err.message || 'Internal Server Error' });
-}
+    res.status(status).json({
+        success: false,
+        error: err.message || 'Internal Server Error',
+        // 生产环境下隐藏堆栈信息以保护服务器安全
+        stack: process.env.NODE_ENV === 'production' ? '🥞' : err.stack 
+    });
+};
 app.use(errorHandler);
 
-// server.listen(PORT);
-// app.listen(PORT);
-
+/**
+ * 7. 启动服务器
+ */
 server.listen(PORT, () => {
-    console.log(`\n==============================================`);
-    console.log(`🚀 CRUD API Server is running!`);
-    console.log(`Local: http://localhost:${PORT}`);
-    console.log(`==============================================`);
-    console.log(`Test Endpoints:`);
-    console.log(`  GET All:    /api/products`);
-    console.log(`  GET One:    /api/products/1`);
-    console.log(`  POST/PUT/DELETE: /api/products/:id`);
-    console.log(`==============================================\n`);
+    const mode = process.env.NODE_ENV || 'development';
+    console.log(`
+==============================================
+🚀 CRUD API Server is running!
+----------------------------------------------
+📍 Mode:    ${mode}
+🔗 Local:   http://localhost:${PORT}
+🔌 Socket:  Enabled
+==============================================
+    `);
 });
