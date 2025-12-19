@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  # 后端应用容器
+  app:
+    build: .                 # 使用当前目录的 Dockerfile 构建镜像
+    ports:
+      - "3000:3000"          # 把容器的 3000 端口映射到电脑的 3000
+    environment:
+      - NODE_ENV=production
+      # 注意：这里的 'db' 对应下面数据库服务的名字
+      - MONGO_URI=mongodb://db:27017/inventory_db
+    depends_on:
+      - db                   # 确保数据库先启动
+
+  # MongoDB 数据库容器
+  db:
+    image: mongo:latest      # 使用你刚才下载成功的那个镜像
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db  # 即使容器删了，数据也保存在这里
+
+volumes:
+  mongo-data:                # 定义一个持久化数据卷
