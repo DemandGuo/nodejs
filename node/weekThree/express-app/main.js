@@ -44,7 +44,8 @@ if (process.env.NODE_ENV === 'production') {
  */
 app.use(express.json()); // 解析 JSON 请求体
 app.use(express.static(path.join(__dirname, 'public'))); // 静态文件服务
-
+// 在其他中间件之后，路由之前添加
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 /**
  * 3. 数据库连接初始化
  */

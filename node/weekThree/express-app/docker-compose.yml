@@ -13,6 +13,9 @@ services:
     depends_on:
       - db # 确保数据库先启动
       - redis # 确保 Redis 先启动
+    volumes: 
+      - .:/main # 
+      - ./uploads:/app/uploads # 专门挂载上传目录，保证图片持久化
   # MongoDB 数据库容器
   db:
     image: mongo:latest # 使用你刚才下载成功的那个镜像

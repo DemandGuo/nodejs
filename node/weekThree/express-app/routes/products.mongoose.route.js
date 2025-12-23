@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const productsService = require('../services/products.service.mongoose');
 const { validate, schemas } = require('../middlewares/validator.middleware');
+const upload = require('../middlewares/upload.middleware');
 
 // --- 辅助函数：处理未找到资源 ---
 function handleNotFound(product, res) {
@@ -113,4 +114,24 @@ router.patch('/:id/stock', validate(schemas.stockUpdate), async (req, res, next)
     }
 });
 
+router.post('/upload', upload.single('image'), async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+        const imageUrl = `/uploads/${req.file.filename}`;
+        // const updatedProduct = await productsService.addImage(id, imageUrl);
+        // if (!updatedProduct) {
+        //     return res.status(404).json({ error: 'Product not found' });
+        // }
+        const domain = `${req.protocol}://${req.get('host')}`;
+        res.json({
+            success: true,
+            url: `${domain}${imageUrl}`
+        });
+    } catch (err) {
+        next(err);
+    }
+});
 module.exports = router;
