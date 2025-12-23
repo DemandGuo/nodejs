@@ -1,9 +1,19 @@
 const Product = require('../models/Product');
 const Log = require('../models/log.model');
+const redisClient = require('../utils/redis');
 
 module.exports = {
     async getAll() {
-        return await Product.find();
+        const cacheKey = 'all_products';
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+            console.log('从 Redis 缓存中获取产品列表');
+            return JSON.parse(cachedData);
+        }
+        console.log('从数据库中获取产品列表');
+        const products = await Product.find();
+        await redisClient.set(cacheKey, JSON.stringify(products), { EX: 3600 }); // 缓存 3600 秒
+        return products;
     },
 
     async getById(id) {
@@ -31,7 +41,8 @@ module.exports = {
             // 也可以广播“系统日志已更新”事件
             io.emit('log_updated', { type: 'INFO', msg: '有一条新的操作记录' });
         }
-
+        // 只要数据变了，就立刻删除缓存
+        await redisClient.del('all_products');
         return savedProduct;
     },
 
@@ -48,7 +59,8 @@ module.exports = {
 
             if (io) io.emit('product_updated', updatedProduct);
         }
-
+        // 只要数据变了，就立刻删除缓存
+        await redisClient.del('all_products');
         return updatedProduct;
     },
 
@@ -65,7 +77,8 @@ module.exports = {
 
             if (io) io.emit('product_deleted', { id });
         }
-
+        // 只要数据变了，就立刻删除缓存
+        await redisClient.del('all_products');
         return deletedProduct;
     },
     async updateStock(id, newStock, io) {
@@ -96,6 +109,8 @@ module.exports = {
                 });
             }
         }
+        // 只要数据变了，就立刻删除缓存
+        await redisClient.del('all_products');
         return updatedProduct;
     }
 };
