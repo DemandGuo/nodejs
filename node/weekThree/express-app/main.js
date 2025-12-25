@@ -6,6 +6,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+require('./subscribers/product.subscriber'); // 初始化所有事件监听
 
 // 生产环境增强插件
 const helmet = require('helmet');

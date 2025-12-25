@@ -4,6 +4,9 @@ const redisClient = require('../utils/redis');
 const sharp = require('sharp');
 const path = require('path');
 const Category = require('../models/Category');
+const ImageServer = require('./image.service')
+const logService = require('./log.service'); // 引入日志服务
+const eventBus = require('../events/eventBus');
 // 定义全局上传根目录
 const UPLOAD_ROOT = path.join(process.cwd(), 'uploads');
 module.exports = {
@@ -29,24 +32,7 @@ module.exports = {
         // 1. 操作第一张表：创建产品
         const newProduct = new Product(data);
         const savedProduct = await newProduct.save();
-
-        // 2. 操作第二张表：自动创建关联日志
-        const newLog = new Log({
-            action: 'CREATE',
-            targetId: savedProduct._id,
-            message: `成功上架新产品: ${savedProduct.name}`
-        });
-        await newLog.save();
-
-        // 3. 触发实时通知
-        if (io) {
-            // 向所有连接的客户端广播“产品已添加”事件
-            io.emit('product_added', savedProduct);
-            // 也可以广播“系统日志已更新”事件
-            io.emit('log_updated', { type: 'INFO', msg: '有一条新的操作记录' });
-        }
-        // 只要数据变了，就立刻删除缓存
-        await redisClient.del('all_products');
+        eventBus.emit('PRODUCT_CREATED', { product: savedProduct, io });
         return savedProduct;
     },
 
@@ -147,17 +133,9 @@ module.exports = {
 
     // 2. 新增：图片处理逻辑 (把复杂的 sharp 逻辑搬过来)
     async processImage(file) {
-        const thumbnailName = `thumb-${file.filename}`;
+        // const thumbnailName = `thumb-${file.filename}`;
         // 注意：这里的路径计算要准确
-        const thumbnailPath = path.join(UPLOAD_ROOT, thumbnailName);
-
-        await sharp(file.path)
-            .resize(200, 200, {
-                fit: 'center',
-                position: 'center'
-            })
-            .toFile(thumbnailPath);
-
+        const thumbnailName = await ImageServer.generateThumbnail(file);
         return {
             originalName: file.filename,
             thumbnailName: thumbnailName
