@@ -13,7 +13,12 @@ const productSchema = new Schema({
     description: {
         type: String,
         required: false
-    }
+    },
+    category: {
+        type: Schema.Types.ObjectId,
+        ref: 'Category',
+        required: true
+    },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Product', productSchema);

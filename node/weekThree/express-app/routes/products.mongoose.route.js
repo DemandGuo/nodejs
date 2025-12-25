@@ -15,7 +15,22 @@ function handleNotFound(product, res) {
     }
     return product;
 }
-
+router.get('/stats', async (req, res, next) => {
+    try {
+        const stats = await productsService.getstatus();
+        res.json(stats);
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/category', async (req, res, next) => {
+    try {
+        const savedCategory = await productsService.createCategory(req.body);
+        res.status(201).json(savedCategory);
+    } catch (err) {
+        next(err);
+    }
+});
 // 获取所有产品
 router.get('/', async (req, res, next) => {
     try {
@@ -120,18 +135,15 @@ router.post('/upload', upload.single('image'), async (req, res, next) => {
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
-        const imageUrl = `/uploads/${req.file.filename}`;
-        // const updatedProduct = await productsService.addImage(id, imageUrl);
-        // if (!updatedProduct) {
-        //     return res.status(404).json({ error: 'Product not found' });
-        // }
+        const { originalName, thumbnailName } = await productsService.processImage(req.file);
         const domain = `${req.protocol}://${req.get('host')}`;
         res.json({
             success: true,
-            url: `${domain}${imageUrl}`
+            url: `${domain}${originalName}`,
+            thumbnailUrl: `${domain}${thumbnailName}`
         });
     } catch (err) {
         next(err);
     }
-});
+});1
 module.exports = router;

@@ -1,7 +1,11 @@
 const Product = require('../models/Product');
 const Log = require('../models/log.model');
 const redisClient = require('../utils/redis');
-
+const sharp = require('sharp');
+const path = require('path');
+const Category = require('../models/Category');
+// 定义全局上传根目录
+const UPLOAD_ROOT = path.join(process.cwd(), 'uploads');
 module.exports = {
     async getAll() {
         const cacheKey = 'all_products';
@@ -112,5 +116,51 @@ module.exports = {
         // 只要数据变了，就立刻删除缓存
         await redisClient.del('all_products');
         return updatedProduct;
+    },
+    async getstatus() {
+        const stats = await Product.aggregate([
+            {
+                // 1. 过滤：只统计价格大于 0 的
+                $match: { price: { $gt: 0 } }
+            },
+            {
+                // 2. 分组：按 category 字段分组
+                $group: {
+                    _id: "$category",
+                    totalProducts: { $sum: 1 },         // 计数
+                    avgPrice: { $avg: "$price" },       // 平均价
+                    totalStockValue: { $sum: { $multiply: ["$price", "$stock"] } } // 总资产
+                }
+            },
+            {
+                // 3. 排序：按总资产降序排列
+                $sort: { totalStockValue: -1 }
+            }
+        ]);
+        return stats;
+    },
+    // 1. 新增：创建分类逻辑
+    async createCategory(data) {
+        const category = new Category(data);
+        return await category.save();
+    },
+
+    // 2. 新增：图片处理逻辑 (把复杂的 sharp 逻辑搬过来)
+    async processImage(file) {
+        const thumbnailName = `thumb-${file.filename}`;
+        // 注意：这里的路径计算要准确
+        const thumbnailPath = path.join(UPLOAD_ROOT, thumbnailName);
+
+        await sharp(file.path)
+            .resize(200, 200, {
+                fit: 'center',
+                position: 'center'
+            })
+            .toFile(thumbnailPath);
+
+        return {
+            originalName: file.filename,
+            thumbnailName: thumbnailName
+        };
     }
 };

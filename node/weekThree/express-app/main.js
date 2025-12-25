@@ -18,7 +18,7 @@ const connectDB = require('./db.mongoose');
 // 路由引入
 const routerAuth = require('./routes/auth.route.js');
 const routesProductsMongoose = require('./routes/products.mongoose.route.js');
-
+const authMiddleware = require('./middlewares/auth.middleware');
 /**
  * 初始化应用
  */
@@ -64,7 +64,7 @@ app.set('io', io);
 
 io.on('connection', (socket) => {
     console.log(`👤 New User Connected: ${socket.id}`);
-    
+
     socket.on('disconnect', () => {
         console.log(`👤 User Disconnected: ${socket.id}`);
     });
@@ -74,7 +74,7 @@ io.on('connection', (socket) => {
  * 5. 业务路由定义
  */
 app.use('/api/auth', routerAuth);
-app.use('/api/products', routesProductsMongoose);
+app.use('/api/products', authMiddleware, routesProductsMongoose);
 
 /**
  * 6. 全局错误处理中间件 (必须放在路由之后)
@@ -86,7 +86,7 @@ const errorHandler = (err, req, res, next) => {
         success: false,
         error: err.message || 'Internal Server Error',
         // 生产环境下隐藏堆栈信息以保护服务器安全
-        stack: process.env.NODE_ENV === 'production' ? '🥞' : err.stack 
+        stack: process.env.NODE_ENV === 'production' ? '🥞' : err.stack
     });
 };
 app.use(errorHandler);
